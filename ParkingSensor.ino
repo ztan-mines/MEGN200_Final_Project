@@ -3,10 +3,11 @@
 #define VACANT_LED 13
 #define OCCUPIED_LED 12
 
-int distance = 0;
+int distances[10];
 const int MEASUREMENT_DELAY = 1000;
 const int CONVERT_TO_CM = 58;
 const int TRIGGER_DISTANCE = 200; //TODO: research height of ceilings in parking garages
+
 
 void setup() {
   
