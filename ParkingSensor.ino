@@ -1,41 +1,77 @@
+/**
+ * Authors: Aubrey Bradford, Zabdiyel Tan
+ * created on April 9, 2019
+ */
+
 #define ECHO_PIN 2
 #define TRIG_PIN 3
 #define VACANT_LED 13
 #define OCCUPIED_LED 12
 
-int distances[10];
+
+const int DISTANCES_SIZE = 10;
 const int MEASUREMENT_DELAY = 1000;
 const int CONVERT_TO_CM = 58;
 const int TRIGGER_DISTANCE = 200; //TODO: research height of ceilings in parking garages
+int distances[DISTANCES_SIZE];
+int average = 0;
 
 
-void setup() {
-  
+void setup() {  
   Serial.begin(9600);
+
+  // configure ultrasonic sensor
   pinMode(ECHO_PIN, INPUT);
   pinMode(TRIG_PIN, OUTPUT);
   digitalWrite(ECHO_PIN, HIGH);
 
+  // configure LED pins
   pinMode(VACANT_LED, OUTPUT);
   pinMode(OCCUPIED_LED, OUTPUT);
-
 }
 
-void loop() {
-
-  // TODO: adjust delay (we don't need measurements every few microseconds)
+int getDistance(){
+  /**
+   * Return a distance measurement from the ultrasonic sensor.
+   */
+  int distance = 0;
   digitalWrite(TRIG_PIN, LOW);
   delayMicroseconds(2);
   digitalWrite(TRIG_PIN, HIGH);
   delayMicroseconds(10);
   digitalWrite(TRIG_PIN, LOW);
-
   distance = pulseIn(ECHO_PIN, HIGH, 26000);
   distance = distance / CONVERT_TO_CM;
-  Serial.print(distance);
+  return distance;
+}
+
+bool isOccupied(){
+  /**
+   * Determine whether parking space is occupied
+   */
+  return (average > 0 && average < TRIGGER_DISTANCE);
+}
+
+void loop() {
+
+  // get a measurement from the ultrasonic sensor
+  for(int i = 0; i < DISTANCES_SIZE; ++i){
+    distances[i] = getDistance();
+  }
+
+  // average values in distances array
+  int total = 0;
+  for(int i = 0; i < DISTANCES_SIZE; ++i){
+    total += distances[i];
+  }
+  average = total / DISTANCES_SIZE;
+
+  // print average value
+  Serial.print(average);
   Serial.println(" cm");
 
-  if(distance > 0 && distance < TRIGGER_DISTANCE){
+  // turn on appropriate indicator lights based on whether parking space is occupied
+  if(isOccupied()){
     digitalWrite(VACANT_LED, LOW);
     digitalWrite(OCCUPIED_LED, HIGH);
   } else {
@@ -43,6 +79,6 @@ void loop() {
     digitalWrite(OCCUPIED_LED, LOW);
   }
   
-  delay(MEASUREMENT_DELAY);
+  delay(MEASUREMENT_DELAY);  // wait some time before the next measurement
 
 }
