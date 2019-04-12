@@ -5,8 +5,8 @@
 
 #define ECHO_PIN 2
 #define TRIG_PIN 3
-#define VACANT_LED 13
-#define OCCUPIED_LED 12
+#define VACANT_LED 10
+#define OCCUPIED_LED 9
 
 
 const int DISTANCES_SIZE = 10;
