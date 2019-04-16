@@ -5,6 +5,7 @@
 RF24 radio(7,8);
 
 const byte address[6] = "00001";
+int average;
 
 void setup() {
   Serial.begin(9600);
@@ -16,8 +17,8 @@ void setup() {
 
 void loop() {
   if(radio.available()){
-    char text[32] = "";
-    radio.read(&text, sizeof(text));
-    Serial.println(text);
+    average = 0;
+    radio.read(&average, sizeof(average));
+    Serial.println(average);
   }
 }
