@@ -19,6 +19,9 @@ void loop() {
   if(radio.available()){
     average = 0;
     radio.read(&average, sizeof(average));
-    Serial.println(average);
+
+    // print received data
+    Serial.print(average);  // TODO: append data w/ timestamp to file
+    Serial.println("cm");
   }
 }

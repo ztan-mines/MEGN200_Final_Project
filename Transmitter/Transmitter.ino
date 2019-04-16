@@ -74,10 +74,8 @@ void loop() {
   }
   average = total / DISTANCES_SIZE;
 
-  // print average value & send to receiver arduino
-  Serial.print(average);
-  Serial.println(" cm");
-  radio.write(&average, sizeof(average));  // send average distance reading to receiver
+  // send average distance reading to receiver
+  radio.write(&average, sizeof(average));  
 
   // turn on appropriate indicator lights based on whether parking space is occupied
   if(isOccupied()){
@@ -88,8 +86,5 @@ void loop() {
     digitalWrite(OCCUPIED_LED, LOW);
   }
   
-  delay(MEASUREMENT_DELAY);  // wait some time before the next measurement
-  
-  const char text[] = "Hello, world!";
-  
+  delay(MEASUREMENT_DELAY);  // wait some time before the next measurement  
 }
