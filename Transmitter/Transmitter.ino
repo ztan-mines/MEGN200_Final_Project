@@ -11,7 +11,7 @@ RF24 radio(7,8);
 
 const byte address[6] = "00001";  // communication channel for transmitter & receiver
 const int DISTANCES_SIZE = 10;
-const int MEASUREMENT_DELAY = 1000;
+const int MEASUREMENT_DELAY = 1000;  // milisecs
 const int CONVERT_TO_CM = 58;
 const int CALLIBRATION_TRIALS = 100;  // how many measurements the sensor should take to determine the actual trigger distance
 const int MEASUREMENT_ERROR = 10;  // helps account for x-factor when callibrating the system
@@ -25,6 +25,14 @@ void setTriggerDistance(){
     total += getDistance();
   }
   triggerDistance = ((int)total / CALLIBRATION_TRIALS) - MEASUREMENT_ERROR;  // reset trigger distance to be average of measurements taken minus some error
+
+  // Check for errors, and notify user if any exist
+  if(triggerDistance < 0){
+    String message = "Error: activation distance cannot be less than zero.\nEither the sensor is not receiving a return signal or you have\n positioned the sensor too close to something (such as the ground).\nReposition the sensor, and then press the reset button on the Arduino.";
+    radio.write(&message, sizeof(message));
+    delay(MEASUREMENT_DELAY);
+    exit(50);
+  }
   
   // Notify user that system is callibrated.
   Serial.print("The system has been callibrated. If sensor reads a distance less than ");
