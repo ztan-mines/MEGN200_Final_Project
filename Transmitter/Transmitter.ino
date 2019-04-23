@@ -13,7 +13,7 @@ const byte address[6] = "00001";  // communication channel for transmitter & rec
 const int DISTANCES_SIZE = 10;
 const int MEASUREMENT_DELAY = 1000;
 const int CONVERT_TO_CM = 58;
-const int TRIGGER_DISTANCE = 200; //TODO: research height of ceilings in parking garages
+const int TRIGGER_DISTANCE = 200;  // minimum parking garage ceiling height is 7 ft (2.134 m) https://up.codes/s/public-parking-garages
 int distances[DISTANCES_SIZE];
 int average = 0;
 
