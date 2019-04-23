@@ -13,29 +13,24 @@ const byte address[6] = "00001";  // communication channel for transmitter & rec
 const int DISTANCES_SIZE = 10;
 const int MEASUREMENT_DELAY = 1000;
 const int CONVERT_TO_CM = 58;
-const int TRIGGER_DISTANCE = 200;  // minimum parking garage ceiling height is 7 ft (2.134 m) https://up.codes/s/public-parking-garages
+const int CALLIBRATION_TRIALS = 100;  // how many measurements the sensor should take to determine the actual trigger distance
+const int MEASUREMENT_ERROR = 10;  // helps account for x-factor when callibrating the system
+int triggerDistance = 200;  // minimum parking garage ceiling height is 7 ft (2.134 m) https://up.codes/s/public-parking-garages
 int distances[DISTANCES_SIZE];
 int average = 0;
 
-void setup() {
-  Serial.begin(9600);
-
-  // configure arduino for transmitting signals
-  radio.begin();
-  radio.openWritingPipe(address);
-  radio.setPALevel(RF24_PA_MIN);
-  radio.stopListening();  // transmitter
-
-  // configure ultrasonic sensor
-  pinMode(ECHO_PIN, INPUT);
-  pinMode(TRIG_PIN, OUTPUT);
-  digitalWrite(ECHO_PIN, HIGH);
-
-  // configure LED pins
-  pinMode(VACANT_LED, OUTPUT);
-  pinMode(OCCUPIED_LED, OUTPUT);
+void setTriggerDistance(){
+  float total = 0;
+  for(int i = 0; i < CALLIBRATION_TRIALS; ++i){
+    total += getDistance();
+  }
+  triggerDistance = ((int)total / CALLIBRATION_TRIALS) - MEASUREMENT_ERROR;  // reset trigger distance to be average of measurements taken minus some error
+  
+  // Notify user that system is callibrated.
+  Serial.print("The system has been callibrated. If sensor reads a distance less than ");
+  Serial.print(triggerDistance);
+  Serial.println(" cm, then the system will indicate occupied (red light).");
 }
-
 
 int getDistance(){
   /**
@@ -56,9 +51,30 @@ bool isOccupied(){
   /**
    * Determine whether parking space is occupied
    */
-  return (average > 0 && average < TRIGGER_DISTANCE);
+  return (average > 0 && average < triggerDistance);
 }
 
+void setup() {
+  Serial.begin(9600);
+
+  // configure arduino for transmitting signals
+  radio.begin();
+  radio.openWritingPipe(address);
+  radio.setPALevel(RF24_PA_MIN);
+  radio.stopListening();  // transmitter
+
+  // configure ultrasonic sensor
+  pinMode(ECHO_PIN, INPUT);
+  pinMode(TRIG_PIN, OUTPUT);
+  digitalWrite(ECHO_PIN, HIGH);
+
+  // configure LED pins
+  pinMode(VACANT_LED, OUTPUT);
+  pinMode(OCCUPIED_LED, OUTPUT);
+
+  // callibrate the sensor
+  setTriggerDistance();
+}
 
 void loop() {
 
