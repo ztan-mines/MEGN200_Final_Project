@@ -14,30 +14,27 @@ const int DISTANCES_SIZE = 10;
 const int MEASUREMENT_DELAY = 1000;  // milisecs
 const int CONVERT_TO_CM = 58;
 const int CALLIBRATION_TRIALS = 100;  // how many measurements the sensor should take to determine the actual trigger distance
-const int MEASUREMENT_ERROR = 10;  // helps account for x-factor when callibrating the system
-int triggerDistance = 200;  // minimum parking garage ceiling height is 7 ft (2.134 m) https://up.codes/s/public-parking-garages
+const int MEASUREMENT_ERROR = 10;  // cm, helps account for x-factor when callibrating the system
+int triggerDistance = -1;  // minimum parking garage ceiling height is 7 ft (2.134 m) https://up.codes/s/public-parking-garages
 int distances[DISTANCES_SIZE];
 int average = 0;
 
 void setTriggerDistance(){
+
+  radio.write(&triggerDistance, sizeof(triggerDistance));  // notifies user that callibration is taking place (sends -1 to receiver)
+  
   float total = 0;
   for(int i = 0; i < CALLIBRATION_TRIALS; ++i){
     total += getDistance();
+    delay(MEASUREMENT_DELAY / CALLIBRATION_TRIALS);  // the callibration process should ideally take a MEASUREMENT_DELAY amount of time
   }
   triggerDistance = ((int)total / CALLIBRATION_TRIALS) - MEASUREMENT_ERROR;  // reset trigger distance to be average of measurements taken minus some error
-
-  // Check for errors, and notify user if any exist
-  if(triggerDistance < 0){
-    String message = "Error: activation distance cannot be less than zero.\nEither the sensor is not receiving a return signal or you have\n positioned the sensor too close to something (such as the ground).\nReposition the sensor, and then press the reset button on the Arduino.";
-    radio.write(&message, sizeof(message));
-    delay(MEASUREMENT_DELAY);
-    exit(50);
-  }
   
-  // Notify user that system is callibrated.
-  Serial.print("The system has been callibrated. If sensor reads a distance less than ");
-  Serial.print(triggerDistance);
-  Serial.println(" cm, then the system will indicate occupied (red light).");
+  if(triggerDistance < MEASUREMENT_ERROR){  // continue to attempt callibration until triggerDistance is acceptable
+    Serial.print(triggerDistance);
+    Serial.println(" CM. TRIGGER DISTANCE TOO SMALL. RECALLIBRATING...");
+    setTriggerDistance();
+  }
 }
 
 int getDistance(){
@@ -89,6 +86,7 @@ void loop() {
   // get a measurement from the ultrasonic sensor
   for(int i = 0; i < DISTANCES_SIZE; ++i){
     distances[i] = getDistance();
+    delay(MEASUREMENT_DELAY / DISTANCES_SIZE);
   }
 
   // average values in distances array

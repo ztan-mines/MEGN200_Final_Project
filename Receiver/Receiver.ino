@@ -5,7 +5,7 @@
 RF24 radio(7,8);
 
 const byte address[6] = "00001";
-int average;
+int message;
 
 void setup() {
   Serial.begin(9600);
@@ -17,11 +17,11 @@ void setup() {
 
 void loop() {
   if(radio.available()){
-    average = 0;
-    radio.read(&average, sizeof(average));
+    message = 0;
+    radio.read(&message, sizeof(message));
 
     // print received data
-    Serial.print(average);  // TODO: append data w/ timestamp to file
-    Serial.println("cm");
+    Serial.print(message);
+    Serial.println(" cm");
   }
 }
